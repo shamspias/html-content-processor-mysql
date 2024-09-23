@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from db_processor import DatabaseProcessor
+from scr.db_processor import DatabaseProcessor
 
 
 def main():
@@ -10,10 +10,12 @@ def main():
     # Get configuration from environment variables
     config = {
         'DB_HOST': os.getenv('DB_HOST'),
+        'DB_PORT': os.getenv('DB_PORT', '3306'),  # Default to '3306' if not specified
         'DB_USER': os.getenv('DB_USER'),
         'DB_PASSWORD': os.getenv('DB_PASSWORD'),
         'DB_NAME': os.getenv('DB_NAME'),
         'START_ID': os.getenv('START_ID', '0'),
+        'OUTPUT_DIR': os.getenv('OUTPUT_DIR', 'output'),
     }
 
     # Check for missing configuration
