@@ -148,6 +148,25 @@ class TestDatabaseProcessor(unittest.TestCase):
         mock_connection.close.assert_called_once()
         print("test_process_records_no_records passed.")
 
+    def test_generate_unique_filename(self):
+        # Assume the output directory is 'output_test'
+        self.processor.output_dir = 'output_test'
+        os.makedirs(self.processor.output_dir, exist_ok=True)
+
+        # Create a dummy file to simulate existing file
+        existing_file = os.path.join(self.processor.output_dir, 'TestPage.txt')
+        with open(existing_file, 'w') as f:
+            f.write('Dummy content')
+
+        # Generate a unique filename
+        unique_filename = self.processor.generate_unique_filename('TestPage.txt')
+        self.assertEqual(unique_filename, 'TestPage_1.txt')
+
+        # Clean up
+        os.remove(existing_file)
+        os.rmdir(self.processor.output_dir)
+        print("test_generate_unique_filename passed.")
+
 
 if __name__ == '__main__':
     unittest.main()
