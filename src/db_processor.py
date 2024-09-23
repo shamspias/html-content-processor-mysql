@@ -12,21 +12,35 @@ class DatabaseProcessor:
         Initialize the DatabaseProcessor.
 
         Parameters:
-        config (dict): Configuration dictionary containing database credentials and start_id.
+        config (dict): Configuration dictionary containing database credentials, start_id, and output directory.
         """
         self.host = config.get('DB_HOST')
+        self.port = int(config.get('DB_PORT', 3306))  # Default to 3306 if not specified
         self.user = config.get('DB_USER')
         self.password = config.get('DB_PASSWORD')
         self.database = config.get('DB_NAME')
         self.start_id = int(config.get('START_ID', 0))
+        self.output_dir = config.get('OUTPUT_DIR', 'output')
         self.connection = None
         self.converter = HTMLToTextConverter()
+
+        # Ensure the output directory exists
+        self.create_output_directory()
+
+    def create_output_directory(self):
+        """Create the output directory if it doesn't exist."""
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+            print(f"Created output directory: {self.output_dir}")
+        else:
+            print(f"Using existing output directory: {self.output_dir}")
 
     def connect(self):
         """Connect to the MySQL database."""
         try:
             self.connection = mysql.connector.connect(
                 host=self.host,
+                port=self.port,
                 user=self.user,
                 password=self.password,
                 database=self.database
@@ -55,6 +69,24 @@ class DatabaseProcessor:
         str: The sanitized filename.
         """
         return re.sub(r'[\\/*?:"<>|]', "_", name)
+
+    def generate_unique_filename(self, filename):
+        """
+        Generate a unique filename if the file already exists in the output directory.
+
+        Parameters:
+        filename (str): The original filename.
+
+        Returns:
+        str: A unique filename.
+        """
+        base_name, extension = os.path.splitext(filename)
+        counter = 1
+        unique_filename = filename
+        while os.path.exists(os.path.join(self.output_dir, unique_filename)):
+            unique_filename = f"{base_name}_{counter}{extension}"
+            counter += 1
+        return unique_filename
 
     def process_records(self):
         """Process records from the database and save them to text files."""
@@ -88,13 +120,20 @@ class DatabaseProcessor:
                 text_content = self.converter.convert(content)
 
                 # Sanitize filename
-                filename = f"{self.sanitize_filename(pagetitle)}.txt"
+                sanitized_title = self.sanitize_filename(pagetitle)
+                filename = f"{sanitized_title}.txt"
+
+                # Generate a unique filename to avoid duplication
+                unique_filename = self.generate_unique_filename(filename)
+
+                # Full path to the output file
+                file_path = os.path.join(self.output_dir, unique_filename)
 
                 # Write the text content to a file
-                with open(filename, "w", encoding="utf-8") as file:
+                with open(file_path, "w", encoding="utf-8") as file:
                     file.write(text_content)
 
-                print(f"Processed ID: {content_id}, File saved as: {filename}")
+                print(f"Processed ID: {content_id}, File saved as: {unique_filename}")
 
             cursor.close()
             print("Finished processing all records.")
