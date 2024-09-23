@@ -1,6 +1,8 @@
-import mysql.connector
 import re
 import os
+import html
+import mysql.connector
+
 from .html_to_text_converter import HTMLToTextConverter
 
 
@@ -58,17 +60,31 @@ class DatabaseProcessor:
             print("Database connection closed.")
 
     @staticmethod
-    def sanitize_filename(name):
+    def sanitize_filename(name, content_id, max_length=80):
         """
-        Sanitize the filename by removing illegal characters.
+        Sanitize the filename by removing illegal characters and limiting its length.
 
         Parameters:
         name (str): The original filename.
+        max_length (int): Maximum allowed length for the filename.
 
         Returns:
-        str: The sanitized filename.
+        str: The sanitized and truncated filename.
         """
-        return re.sub(r'[\\/*?:"<>|]', "_", name)
+        # Decode HTML entities
+        name = html.unescape(name)
+
+        # Remove illegal characters
+        name = re.sub(r'[\\/*?:"<>|]', "_", name)
+
+        # Replace spaces with underscores and remove extra spaces
+        name = re.sub(r'\s+', '_', name).strip('_')
+
+        # Truncate the filename to the maximum allowed length
+        if len(name) > max_length:
+            name = name[:max_length]
+
+        return str(content_id) + ". " + name
 
     def generate_unique_filename(self, filename):
         """
@@ -125,7 +141,7 @@ class DatabaseProcessor:
                 text_content = self.converter.convert(content)
 
                 # Sanitize filename
-                sanitized_title = self.sanitize_filename(pagetitle)
+                sanitized_title = self.sanitize_filename(pagetitle, content_id)
                 filename = f"{sanitized_title}.txt"
 
                 # Generate a unique filename to avoid duplication
