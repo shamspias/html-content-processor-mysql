@@ -116,6 +116,11 @@ class DatabaseProcessor:
                 pagetitle = row['pagetitle']
                 content = row['content']
 
+                # **Add this check for None content**
+                if content is None:
+                    print(f"Content is None for ID: {content_id}. Skipping this record.")
+                    continue
+
                 # Convert HTML content to plain text
                 text_content = self.converter.convert(content)
 
