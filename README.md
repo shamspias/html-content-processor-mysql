@@ -1,6 +1,8 @@
 # MySQL HTML Content Processor
 
-This project connects to a MySQL database, retrieves HTML content from the `pechen_site_content` table, converts it to plain text, and saves each entry as a text file named after the `pagetitle`. It is designed to handle large datasets and allows you to resume processing from a specific ID in case of interruptions.
+This project connects to a MySQL database, retrieves HTML content from the `pechen_site_content` table, converts it to
+plain text, and saves each entry as a text file named after the `pagetitle`. It is designed to handle large datasets and
+allows you to resume processing from a specific ID in case of interruptions.
 
 ---
 
@@ -9,16 +11,16 @@ This project connects to a MySQL database, retrieves HTML content from the `pech
 - [Project Structure](#project-structure)
 - [Features](#features)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Configuration](#configuration)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
 - [Usage](#usage)
-  - [Running the Application](#running-the-application)
-  - [Resuming Processing](#resuming-processing)
+    - [Running the Application](#running-the-application)
+    - [Resuming Processing](#resuming-processing)
 - [Testing](#testing)
 - [Project Details](#project-details)
-  - [HTML to Text Conversion](#html-to-text-conversion)
-  - [Database Processing](#database-processing)
+    - [HTML to Text Conversion](#html-to-text-conversion)
+    - [Database Processing](#database-processing)
 - [Best Practices](#best-practices)
 - [Dependencies](#dependencies)
 - [Contributing](#contributing)
@@ -49,12 +51,12 @@ project/
 - **`requirements.txt`**: Lists all Python dependencies.
 - **`README.md`**: Documentation and instructions.
 - **`src/`**: Source code.
-  - **`__init__.py`**: Initializes the `src` package.
-  - **`main.py`**: Entry point of the application.
-  - **`db_processor.py`**: Contains `DatabaseProcessor` class.
-  - **`html_to_text_converter.py`**: Contains `HTMLToTextConverter` class.
+    - **`__init__.py`**: Initializes the `src` package.
+    - **`main.py`**: Entry point of the application.
+    - **`db_processor.py`**: Contains `DatabaseProcessor` class.
+    - **`html_to_text_converter.py`**: Contains `HTMLToTextConverter` class.
 - **`tests/`**: Unit tests.
-  - **`test_processor.py`**: Tests for the classes.
+    - **`test_processor.py`**: Tests for the classes.
 
 ---
 
@@ -81,9 +83,9 @@ project/
 ### Installation
 
 1. **Clone the Repository**
-
+   get the link from git, use https or ssh
    ```bash
-   git clone https://your-repo-url.git
+   git clone https://github.com/shamspias/html-content-processor-mysql.git
    cd project
    ```
 
@@ -123,11 +125,11 @@ project/
    START_ID=0
    ```
 
-   - **`DB_HOST`**: Your database host (e.g., `localhost`).
-   - **`DB_USER`**: Your database username.
-   - **`DB_PASSWORD`**: Your database password.
-   - **`DB_NAME`**: Name of your database.
-   - **`START_ID`**: (Optional) ID to start processing from.
+    - **`DB_HOST`**: Your database host (e.g., `localhost`).
+    - **`DB_USER`**: Your database username.
+    - **`DB_PASSWORD`**: Your database password.
+    - **`DB_NAME`**: Name of your database.
+    - **`START_ID`**: (Optional) ID to start processing from.
 
 ---
 
@@ -185,9 +187,9 @@ The `HTMLToTextConverter` class in `html_to_text_converter.py`:
 
 - **Purpose**: Converts HTML content to plain text.
 - **Features**:
-  - Parses HTML using BeautifulSoup.
-  - Inserts newlines at appropriate tags (`<p>`, `<div>`, headers, etc.).
-  - Removes HTML tags while preserving text content.
+    - Parses HTML using BeautifulSoup.
+    - Inserts newlines at appropriate tags (`<p>`, `<div>`, headers, etc.).
+    - Removes HTML tags while preserving text content.
 
 ### Database Processing
 
@@ -195,11 +197,11 @@ The `DatabaseProcessor` class in `db_processor.py`:
 
 - **Purpose**: Handles database connections and processes records.
 - **Features**:
-  - Connects to MySQL using credentials from `.env`.
-  - Retrieves records from `pechen_site_content` starting from `START_ID`.
-  - Converts HTML content to text using `HTMLToTextConverter`.
-  - Saves content to text files named after sanitized `pagetitle`.
-  - Handles exceptions and ensures the database connection is closed properly.
+    - Connects to MySQL using credentials from `.env`.
+    - Retrieves records from `pechen_site_content` starting from `START_ID`.
+    - Converts HTML content to text using `HTMLToTextConverter`.
+    - Saves content to text files named after sanitized `pagetitle`.
+    - Handles exceptions and ensures the database connection is closed properly.
 
 ---
 
