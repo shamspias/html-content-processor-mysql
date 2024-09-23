@@ -15,6 +15,9 @@ class HTMLToTextConverter:
         Returns:
         str: The plain text representation of the HTML content.
         """
+        if html_content is None:
+            html_content = ""
+
         if not isinstance(html_content, str):
             raise TypeError("html_content must be a string.")
 
