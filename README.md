@@ -257,12 +257,6 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## License
-
-This project is licensed under the **MIT License**.
-
----
-
 ## Acknowledgments
 
 - **BeautifulSoup**: For making HTML parsing easy.
