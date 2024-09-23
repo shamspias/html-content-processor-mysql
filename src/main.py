@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from scr.db_processor import DatabaseProcessor
+from src.db_processor import DatabaseProcessor
 
 
 def main():
