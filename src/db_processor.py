@@ -117,7 +117,7 @@ class DatabaseProcessor:
             query = """
                 SELECT id, pagetitle, content 
                 FROM pechen_site_content 
-                WHERE id >= %s 
+                WHERE id >= %s AND published = 1 
                 ORDER BY id ASC
             """
             cursor.execute(query, (self.start_id,))
