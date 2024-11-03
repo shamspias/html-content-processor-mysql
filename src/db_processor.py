@@ -156,7 +156,7 @@ class DatabaseProcessor:
                     continue
 
                 # Remove unwanted patterns like [[video_vk? id=`...`]], [[picts? &number=`...`]], [[faqs]], etc.
-                text_content = re.sub(r'\[\[.*?\]\]', '', text_content)
+                text_content = re.sub(r'\[\[.*?\]\]', '', text_content, flags=re.DOTALL)
 
                 # Remove any extra whitespace resulting from the removal
                 text_content = re.sub(r'\n+', '\n', text_content).strip()
