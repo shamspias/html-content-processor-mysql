@@ -1,6 +1,7 @@
 import re
 import os
 import html
+import json  # Import the json module
 import mysql.connector
 
 from .html_to_text_converter import HTMLToTextConverter
@@ -23,6 +24,7 @@ class DatabaseProcessor:
         self.database = config.get('DB_NAME')
         self.start_id = int(config.get('START_ID', 0))
         self.output_dir = config.get('OUTPUT_DIR', 'output')
+        self.user_id = config.get('USER_ID')
         self.connection = None
         self.converter = HTMLToTextConverter()
 
@@ -105,7 +107,7 @@ class DatabaseProcessor:
         return unique_filename
 
     def process_records(self):
-        """Process records from the database and save them to text files."""
+        """Process records from the database and save them to JSON files."""
         if not self.connection:
             print("No database connection.")
             return
@@ -115,7 +117,7 @@ class DatabaseProcessor:
 
             # SQL query to fetch records starting from a specific ID
             query = """
-                SELECT id, pagetitle, content 
+                SELECT id, pagetitle, content, uri
                 FROM pechen_site_content 
                 WHERE id >= %s AND published = 1 
                 ORDER BY id ASC
@@ -131,18 +133,29 @@ class DatabaseProcessor:
                 content_id = row['id']
                 pagetitle = row['pagetitle']
                 content = row['content']
+                uri = row['uri']
+                print(f"Processing URI: {uri}")
 
-                # **Add this check for None content**
-                if content is None:
+                # Check for None content
+                if content is None or content == "":
                     print(f"Content is None for ID: {content_id}. Skipping this record.")
                     continue
 
                 # Convert HTML content to plain text
                 text_content = self.converter.convert(content)
 
+                # Create the JSON data
+                data = {
+                    "page_content": text_content,
+                    "metadata": {
+                        "uri": uri,
+                        "user_id": self.user_id
+                    }
+                }
+
                 # Sanitize filename
                 sanitized_title = self.sanitize_filename(pagetitle, content_id)
-                filename = f"{sanitized_title}.txt"
+                filename = f"{sanitized_title}.json"
 
                 # Generate a unique filename to avoid duplication
                 unique_filename = self.generate_unique_filename(filename)
@@ -150,9 +163,9 @@ class DatabaseProcessor:
                 # Full path to the output file
                 file_path = os.path.join(self.output_dir, unique_filename)
 
-                # Write the text content to a file
+                # Write the JSON data to a file
                 with open(file_path, "w", encoding="utf-8") as file:
-                    file.write(text_content)
+                    json.dump(data, file, ensure_ascii=False, indent=4)
 
                 print(f"Processed ID: {content_id}, File saved as: {unique_filename}")
 
