@@ -16,6 +16,7 @@ def main():
         'DB_NAME': os.getenv('DB_NAME'),
         'START_ID': os.getenv('START_ID', '0'),
         'OUTPUT_DIR': os.getenv('OUTPUT_DIR', 'output'),
+        'USER_ID': os.getenv('USER_ID', 'default_user'),
     }
 
     # Check for missing configuration
