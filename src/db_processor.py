@@ -1,17 +1,17 @@
 import re
 import os
 import html
-import json  # Import the json module
+import json
 import mysql.connector
 
 # Import NLTK and necessary modules
 import nltk
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-import string
+from nltk.tokenize import word_tokenize, sent_tokenize
 from langdetect import detect, LangDetectException
 
 from .html_to_text_converter import HTMLToTextConverter
+from .supported_languages import supported_langs  # Import the supported languages
 
 # Download NLTK resources if not already present
 nltk.download('punkt', quiet=True)
@@ -155,6 +155,12 @@ class DatabaseProcessor:
                     print(f"Text content is empty after conversion for ID: {content_id}. Skipping this record.")
                     continue
 
+                # Remove unwanted patterns like [[video_vk? id=`...`]], [[picts? &number=`...`]], [[faqs]], etc.
+                text_content = re.sub(r'\[\[.*?\]\]', '', text_content)
+
+                # Remove any extra whitespace resulting from the removal
+                text_content = re.sub(r'\n+', '\n', text_content).strip()
+
                 # Detect language
                 try:
                     detected_lang = detect(text_content)
@@ -163,19 +169,50 @@ class DatabaseProcessor:
                     print(f"Could not detect language for ID: {content_id}. Skipping this record.")
                     continue
 
-                # Check if NLTK has stopwords for the detected language
-                if detected_lang not in stopwords.fileids():
-                    print(
-                        f"No stopwords available for language '{detected_lang}' for ID: {content_id}. Skipping this record.")
+                # Map detected language to NLTK language codes
+                nltk_lang = supported_langs.get(detected_lang, 'russian')  # Default to 'russian' if not supported
 
-                # Create the JSON data
-                data = {
-                    "page_content": text_content,
-                    "metadata": {
-                        "uri": uri,
-                        "user_id": self.user_id
+                # Check if NLTK has stopwords for the detected language
+                if nltk_lang not in stopwords.fileids():
+                    print(
+                        f"No stopwords available for language '{nltk_lang}' for ID: {content_id}. Skipping this record.")
+                    continue
+
+                # Split text_content into sentences
+                try:
+                    sentences = sent_tokenize(text_content, language=nltk_lang)
+                except LookupError:
+                    print(
+                        f"No sentence tokenizer available for language '{nltk_lang}' for ID: {content_id}. Skipping this record.")
+                    continue
+
+                # Accumulate sentences into chunks of up to 1750 characters
+                chunks = []
+                current_chunk = ''
+                for sentence in sentences:
+                    if len(current_chunk) + len(sentence) + 1 <= 1750:
+                        if current_chunk:
+                            current_chunk += ' ' + sentence
+                        else:
+                            current_chunk = sentence
+                    else:
+                        chunks.append(current_chunk.strip())
+                        current_chunk = sentence
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+
+                # Create list of JSON objects
+                data_list = []
+                for chunk in chunks:
+                    data = {
+                        "page_content": chunk,
+                        "metadata": {
+                            "uri": uri
+                            # "user_id": self.user_id
+                            # "language": detected_lang  # Language detection removed from JSON as per your request
+                        }
                     }
-                }
+                    data_list.append(data)
 
                 # Sanitize filename
                 sanitized_title = self.sanitize_filename(pagetitle, content_id)
@@ -187,9 +224,9 @@ class DatabaseProcessor:
                 # Full path to the output file
                 file_path = os.path.join(self.output_dir, unique_filename)
 
-                # Write the JSON data to a file
+                # Write the list of JSON data to a file
                 with open(file_path, "w", encoding="utf-8") as file:
-                    json.dump(data, file, ensure_ascii=False, indent=4)
+                    json.dump(data_list, file, ensure_ascii=False, indent=4)
 
                 print(f"Processed ID: {content_id}, File saved as: {unique_filename}")
 
