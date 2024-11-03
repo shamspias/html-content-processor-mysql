@@ -4,7 +4,18 @@ import html
 import json  # Import the json module
 import mysql.connector
 
+# Import NLTK and necessary modules
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import string
+from langdetect import detect, LangDetectException
+
 from .html_to_text_converter import HTMLToTextConverter
+
+# Download NLTK resources if not already present
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
 
 
 class DatabaseProcessor:
@@ -24,7 +35,7 @@ class DatabaseProcessor:
         self.database = config.get('DB_NAME')
         self.start_id = int(config.get('START_ID', 0))
         self.output_dir = config.get('OUTPUT_DIR', 'output')
-        self.user_id = config.get('USER_ID')
+        self.user_id = config.get('USER_ID', 'default_user')
         self.connection = None
         self.converter = HTMLToTextConverter()
 
@@ -136,13 +147,26 @@ class DatabaseProcessor:
                 uri = row['uri']
                 print(f"Processing URI: {uri}")
 
-                # Check for None content
-                if content is None or content == "":
-                    print(f"Content is None for ID: {content_id}. Skipping this record.")
-                    continue
-
                 # Convert HTML content to plain text
                 text_content = self.converter.convert(content)
+
+                # Check if text_content is empty after stripping whitespace
+                if not text_content.strip():
+                    print(f"Text content is empty after conversion for ID: {content_id}. Skipping this record.")
+                    continue
+
+                # Detect language
+                try:
+                    detected_lang = detect(text_content)
+                    print(f"Detected language: {detected_lang}")
+                except LangDetectException:
+                    print(f"Could not detect language for ID: {content_id}. Skipping this record.")
+                    continue
+
+                # Check if NLTK has stopwords for the detected language
+                if detected_lang not in stopwords.fileids():
+                    print(
+                        f"No stopwords available for language '{detected_lang}' for ID: {content_id}. Skipping this record.")
 
                 # Create the JSON data
                 data = {
